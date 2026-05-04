@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { saveDailyForecasts, getDailyForecasts, getHourlyForecasts } from '../../src/services/forecast.service';
 import { OpenMeteoForecast } from '../../src/types/weather';
 

@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { createOrGetLocation, getLocationById, getAllLocations, deleteLocation } from '../../src/services/location.service';
 
 jest.mock('../../src/config/database', () => ({

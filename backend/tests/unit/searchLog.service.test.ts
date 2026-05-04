@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { logSearch, getRecentSearches } from '../../src/services/searchLog.service';
 
 jest.mock('../../src/config/database', () => ({

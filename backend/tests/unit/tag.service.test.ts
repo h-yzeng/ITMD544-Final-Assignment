@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { getAllTags, addTagToLocation, removeTagFromLocation, getTagsForLocation } from '../../src/services/tag.service';
 
 jest.mock('../../src/config/database', () => ({

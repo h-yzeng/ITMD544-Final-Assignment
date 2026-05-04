@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import axios from 'axios';
 import { fetchForecast } from '../../src/services/weather.service';
 
