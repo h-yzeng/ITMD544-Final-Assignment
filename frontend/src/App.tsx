@@ -62,19 +62,21 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🌤️ Weather App</h1>
+        <h1 className="app-logo">Weather App</h1>
         <SearchBar onSearch={handleSearch} loading={loading} />
-        <div className="unit-toggle">
-          <button
-            type="button"
-            className={`unit-btn${unit === 'C' ? ' unit-btn--active' : ''}`}
-            onClick={() => setUnit('C')}
-          >°C</button>
-          <button
-            type="button"
-            className={`unit-btn${unit === 'F' ? ' unit-btn--active' : ''}`}
-            onClick={() => setUnit('F')}
-          >°F</button>
+        <div className="header-right">
+          <div className="unit-toggle">
+            <button
+              type="button"
+              className={`unit-btn${unit === 'C' ? ' unit-btn--active' : ''}`}
+              onClick={() => setUnit('C')}
+            >°C</button>
+            <button
+              type="button"
+              className={`unit-btn${unit === 'F' ? ' unit-btn--active' : ''}`}
+              onClick={() => setUnit('F')}
+            >°F</button>
+          </div>
         </div>
       </header>
 

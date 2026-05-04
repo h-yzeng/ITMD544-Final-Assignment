@@ -1,8 +1,10 @@
 import type { DailyForecast } from '../types';
 
-const WMO_ICONS: Record<number, string> = {
-  0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️',
-  51: '🌦️', 61: '🌧️', 63: '🌧️', 65: '🌧️', 71: '🌨️', 80: '🌦️', 95: '⛈️',
+const WMO_SHORT: Record<number, string> = {
+  0: 'Clear', 1: 'Clear', 2: 'P.Cloudy', 3: 'Cloudy',
+  45: 'Fog', 48: 'Fog', 51: 'Drizzle',
+  61: 'Rain', 63: 'Rain', 65: 'Rain',
+  71: 'Snow', 80: 'Showers', 95: 'Storms',
 };
 
 function toF(c: number) { return (c * 9) / 5 + 32; }
@@ -24,7 +26,7 @@ export function DailyForecastStrip({ forecasts, selectedId, onSelect, unit }: Pr
       {forecasts.map((f) => {
         const date = new Date(f.forecast_date + 'T12:00:00');
         const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
-        const icon = f.weather_code != null ? (WMO_ICONS[f.weather_code] ?? '🌡️') : '🌡️';
+        const condition = f.weather_code != null ? (WMO_SHORT[f.weather_code] ?? '—') : '—';
         return (
           <button
             key={f.id}
@@ -33,7 +35,7 @@ export function DailyForecastStrip({ forecasts, selectedId, onSelect, unit }: Pr
             onClick={() => onSelect(f)}
           >
             <span className="daily-card__day">{dayLabel}</span>
-            <span className="daily-card__icon">{icon}</span>
+            <span className="daily-card__condition">{condition}</span>
             <span className="daily-card__max">{fmt(f.temp_max, unit)}°</span>
             <span className="daily-card__min">{fmt(f.temp_min, unit)}°</span>
           </button>
