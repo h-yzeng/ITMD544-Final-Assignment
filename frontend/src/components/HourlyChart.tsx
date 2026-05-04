@@ -16,18 +16,21 @@ export function HourlyChart({ hourly, unit }: Props) {
   }));
 
   return (
-    <div className="hourly-chart">
-      <h3>Hourly Forecast — °{unit}</h3>
+    <div className="hourly-section">
+      <p className="section-title">Hourly Forecast &mdash; &deg;{unit}</p>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-          <XAxis dataKey="hour" tick={{ fontSize: 11, fill: '#94a3b8' }} interval={2} />
-          <YAxis yAxisId="temp" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-          <YAxis yAxisId="humidity" orientation="right" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-          <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', color: '#f1f5f9' }} />
-          <Legend />
-          <Line yAxisId="temp" type="monotone" dataKey="Temp" stroke="#f97316" dot={false} strokeWidth={2} />
-          <Line yAxisId="humidity" type="monotone" dataKey="Humidity" stroke="#38bdf8" dot={false} strokeWidth={2} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#243055" />
+          <XAxis dataKey="hour" tick={{ fontSize: 11, fill: '#6b7da0' }} interval={2} />
+          <YAxis yAxisId="temp" tick={{ fontSize: 11, fill: '#6b7da0' }} />
+          <YAxis yAxisId="humidity" orientation="right" tick={{ fontSize: 11, fill: '#6b7da0' }} />
+          <Tooltip
+            contentStyle={{ background: '#111827', border: '1px solid #243055', color: '#e8f0fe', borderRadius: '0.5rem' }}
+            labelStyle={{ color: '#6b7da0', marginBottom: '0.25rem' }}
+          />
+          <Legend wrapperStyle={{ fontSize: '0.8rem', color: '#6b7da0' }} />
+          <Line yAxisId="temp" type="monotone" dataKey="Temp" stroke="#f97316" dot={false} strokeWidth={2.5} />
+          <Line yAxisId="humidity" type="monotone" dataKey="Humidity" stroke="#4cb8f0" dot={false} strokeWidth={2} strokeDasharray="4 2" />
         </LineChart>
       </ResponsiveContainer>
     </div>
