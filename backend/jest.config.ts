@@ -7,9 +7,6 @@ const config: Config = {
   testMatch: ['**/*.test.ts'],
   collectCoverageFrom: ['src/**/*.ts'],
   coveragePathIgnorePatterns: ['src/server.ts'],
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
 };
 
 export default config;
