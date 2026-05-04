@@ -7,11 +7,12 @@ jest.mock('../../src/config/database', () => ({
 jest.mock('../../src/services/location.service');
 jest.mock('../../src/services/tag.service');
 
-import { getAllLocations, getLocationById, deleteLocation } from '../../src/services/location.service';
+import { getAllLocations, getLocationById, updateLocation, deleteLocation } from '../../src/services/location.service';
 import { getTagsForLocation } from '../../src/services/tag.service';
 
 const mockGetAll = getAllLocations as jest.Mock;
 const mockGetById = getLocationById as jest.Mock;
+const mockUpdate = updateLocation as jest.Mock;
 const mockDelete = deleteLocation as jest.Mock;
 const mockGetTags = getTagsForLocation as jest.Mock;
 
@@ -40,6 +41,24 @@ describe('Location routes', () => {
     mockGetById.mockResolvedValue(null);
     const res = await request(app).get('/api/locations/nonexistent');
     expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/locations/:id returns updated location', async () => {
+    mockUpdate.mockResolvedValue({ ...mockLocation, name: 'Chicago City' });
+    const res = await request(app).put('/api/locations/loc-1').send({ name: 'Chicago City' });
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe('Chicago City');
+  });
+
+  it('PUT /api/locations/:id returns 404 when not found', async () => {
+    mockUpdate.mockResolvedValue(null);
+    const res = await request(app).put('/api/locations/nonexistent').send({ timezone: 'America/New_York' });
+    expect(res.status).toBe(404);
+  });
+
+  it('PUT /api/locations/:id returns 400 with no valid fields', async () => {
+    const res = await request(app).put('/api/locations/loc-1').send({});
+    expect(res.status).toBe(400);
   });
 
   it('DELETE /api/locations/:id returns 204', async () => {

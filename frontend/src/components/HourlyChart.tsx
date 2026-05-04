@@ -1,20 +1,23 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { HourlyForecast } from '../types';
 
+function toF(c: number) { return Math.round((c * 9) / 5 + 32); }
+
 interface Props {
   hourly: HourlyForecast[];
+  unit: 'C' | 'F';
 }
 
-export function HourlyChart({ hourly }: Props) {
+export function HourlyChart({ hourly, unit }: Props) {
   const data = hourly.map((h) => ({
     hour: `${String(h.hour).padStart(2, '0')}:00`,
-    Temp: h.temperature,
+    Temp: h.temperature != null ? (unit === 'F' ? toF(h.temperature) : h.temperature) : null,
     Humidity: h.humidity,
   }));
 
   return (
     <div className="hourly-chart">
-      <h3>Hourly Forecast</h3>
+      <h3>Hourly Forecast — °{unit}</h3>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" />

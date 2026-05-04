@@ -1,0 +1,182 @@
+{
+  "info": {
+    "name": "ITMD544 Weather App API",
+    "description": "Full collection for the Weather App REST API — search, locations, forecasts, and tags.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001", "type": "string" },
+    { "key": "locationId", "value": "", "type": "string", "description": "Set after running Search or GET /locations" },
+    { "key": "dailyId", "value": "", "type": "string", "description": "Set after running GET /forecasts/:locationId" },
+    { "key": "tagId", "value": "", "type": "string", "description": "Set after running GET /tags" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health",
+            "description": "Returns server status and timestamp."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Search City",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/search?q=Chicago",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search"],
+              "query": [{ "key": "q", "value": "Chicago" }]
+            },
+            "description": "Geocode a city, fetch 7-day forecast from Open-Meteo, cache in Supabase, and return location + daily array. Copy the returned location.id into the {{locationId}} variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Search History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/search/history",
+            "description": "Returns the last 20 search log entries."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Locations",
+      "item": [
+        {
+          "name": "Get All Locations",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/locations",
+            "description": "Returns all cached locations ordered by creation date descending."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Location by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/locations/{{locationId}}",
+            "description": "Returns a single location with its associated tags array."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/locations/{{locationId}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chicago (updated)\",\n  \"timezone\": \"America/Chicago\"\n}"
+            },
+            "description": "Update one or more of: name, country, timezone. Returns the updated location or 404 if not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Location",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/locations/{{locationId}}",
+            "description": "Deletes the location and all cascaded forecasts, hourly rows, and tag associations. Returns 204."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Forecasts",
+      "item": [
+        {
+          "name": "Get Daily Forecasts",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/forecasts/{{locationId}}",
+            "description": "Returns the 7-day daily forecast array for a location. Copy a forecast id into {{dailyId}} for the hourly request."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hourly Forecasts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/forecasts/{{locationId}}/hourly?dailyId={{dailyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "forecasts", "{{locationId}}", "hourly"],
+              "query": [{ "key": "dailyId", "value": "{{dailyId}}" }]
+            },
+            "description": "Returns 24 hourly rows (temperature, humidity, precipitation, wind) for a specific daily forecast."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "Get All Tags",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/tags",
+            "description": "Returns all available climate tags (Coastal, Mountain, Desert, Tropical, Urban). Copy a tag id into {{tagId}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Tag to Location",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/tags/locations/{{locationId}}/tags",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": \"{{tagId}}\"\n}"
+            },
+            "description": "Assigns a tag to a location. Returns 201 on success, 409 if already assigned."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Tag from Location",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/tags/locations/{{locationId}}/tags/{{tagId}}",
+            "description": "Removes a tag from a location. Returns 204."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "API Docs",
+      "item": [
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/docs",
+            "description": "Interactive Swagger UI — open in a browser, not Postman."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

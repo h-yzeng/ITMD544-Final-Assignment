@@ -21,12 +21,19 @@ function getWeather(code: number | null) {
   return WMO_CODES[code] ?? { label: `Code ${code}`, icon: '🌡️' };
 }
 
+function toF(c: number) { return (c * 9) / 5 + 32; }
+function fmt(c: number | null | undefined, unit: 'C' | 'F') {
+  if (c == null) return '—';
+  return unit === 'F' ? toF(c).toFixed(1) : c.toFixed(1);
+}
+
 interface Props {
   location: Location;
   today: DailyForecast;
+  unit: 'C' | 'F';
 }
 
-export function WeatherCard({ location, today }: Props) {
+export function WeatherCard({ location, today, unit }: Props) {
   const weather = getWeather(today.weather_code);
   return (
     <div className="weather-card">
@@ -39,9 +46,9 @@ export function WeatherCard({ location, today }: Props) {
       </div>
       <p className="weather-card__condition">{weather.label}</p>
       <div className="weather-card__temps">
-        <span className="weather-card__temp-max">{today.temp_max?.toFixed(1)}°C</span>
+        <span className="weather-card__temp-max">{fmt(today.temp_max, unit)}°{unit}</span>
         <span className="weather-card__temp-separator"> / </span>
-        <span className="weather-card__temp-min">{today.temp_min?.toFixed(1)}°C</span>
+        <span className="weather-card__temp-min">{fmt(today.temp_min, unit)}°{unit}</span>
       </div>
       <div className="weather-card__details">
         <span>💨 {today.wind_speed_max?.toFixed(1)} km/h</span>

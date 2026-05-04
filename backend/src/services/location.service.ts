@@ -41,6 +41,21 @@ export async function getAllLocations(): Promise<Location[]> {
   return data ?? [];
 }
 
+export async function updateLocation(
+  id: string,
+  fields: Partial<Pick<Location, 'name' | 'country' | 'timezone'>>,
+): Promise<Location | null> {
+  const { data, error } = await supabase
+    .from('locations')
+    .update(fields)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return null;
+  return data;
+}
+
 export async function deleteLocation(id: string): Promise<void> {
   const { error } = await supabase
     .from('locations')

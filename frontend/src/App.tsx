@@ -17,6 +17,7 @@ export default function App() {
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [history, setHistory] = useState<SearchHistoryEntry[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [unit, setUnit] = useState<'C' | 'F'>('C');
 
   useEffect(() => {
     getSearchHistory().then(setHistory).catch(() => {});
@@ -63,6 +64,18 @@ export default function App() {
       <header className="app-header">
         <h1>🌤️ Weather App</h1>
         <SearchBar onSearch={handleSearch} loading={loading} />
+        <div className="unit-toggle">
+          <button
+            type="button"
+            className={`unit-btn${unit === 'C' ? ' unit-btn--active' : ''}`}
+            onClick={() => setUnit('C')}
+          >°C</button>
+          <button
+            type="button"
+            className={`unit-btn${unit === 'F' ? ' unit-btn--active' : ''}`}
+            onClick={() => setUnit('F')}
+          >°F</button>
+        </div>
       </header>
 
       <main className="app-main">
@@ -75,10 +88,10 @@ export default function App() {
 
           {location && daily[0] && (
             <>
-              <WeatherCard location={location} today={daily[0]} />
+              <WeatherCard location={location} today={daily[0]} unit={unit} />
               <TagManager locationId={location.id} currentTags={tags} onTagsChange={setTags} />
-              <DailyForecastStrip forecasts={daily} selectedId={selectedDay?.id ?? null} onSelect={handleDaySelect} />
-              {hourly.length > 0 && <HourlyChart hourly={hourly} />}
+              <DailyForecastStrip forecasts={daily} selectedId={selectedDay?.id ?? null} onSelect={handleDaySelect} unit={unit} />
+              {hourly.length > 0 && <HourlyChart hourly={hourly} unit={unit} />}
             </>
           )}
 
