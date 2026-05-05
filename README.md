@@ -1,4 +1,4 @@
-# ITMD544 Final Assignment — Full-Stack Weather App
+# ITMD-544 Final Assignment - Full-Stack Weather App
 
 A full-stack weather application that lets users search for any city worldwide, view a 7-day forecast with hourly breakdowns, and annotate locations with custom climate tags. The backend caches all forecast data in Supabase (PostgreSQL) and maintains a searchable audit log. The frontend presents the data through an interactive React UI with a Recharts-powered hourly temperature chart.
 
@@ -302,7 +302,7 @@ The frontend is a static SPA built with Vite and deployed to **Netlify** for CDN
 
 The backend is deployed to **Render** as a Node.js web service using a `render.yaml` configuration file. Render automatically rebuilds and redeploys on every push.
 
-**Deployment Link:** [https://weather-app-backend.onrender.com](https://weather-app-backend.onrender.com)
+**Deployment Link:** [https://getweathernowat.onrender.com](https://getweathernowat.onrender.com)
 
 **Build Configuration:**
 
