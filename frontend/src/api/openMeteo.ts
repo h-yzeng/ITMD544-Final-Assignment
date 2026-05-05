@@ -85,7 +85,10 @@ function buildCurrent(forecast: OpenMeteoForecast): CurrentConditions | null {
   };
 }
 
-function buildDaily(locationId: string, forecast: OpenMeteoForecast): DailyForecast[] {
+function buildDaily(
+  locationId: string,
+  forecast: OpenMeteoForecast,
+): DailyForecast[] {
   return forecast.daily.time.map((date, index) => ({
     id: `${locationId}-${date}`,
     location_id: locationId,
@@ -98,12 +101,20 @@ function buildDaily(locationId: string, forecast: OpenMeteoForecast): DailyForec
   }));
 }
 
-function buildHourly(dailyForecasts: DailyForecast[], forecast: OpenMeteoForecast): HourlyForecast[] {
-  const dailyIdByDate = new Map(dailyForecasts.map((daily) => [daily.forecast_date, daily.id]));
+function buildHourly(
+  dailyForecasts: DailyForecast[],
+  forecast: OpenMeteoForecast,
+): HourlyForecast[] {
+  const dailyIdByDate = new Map(
+    dailyForecasts.map((daily) => [daily.forecast_date, daily.id]),
+  );
 
   return forecast.hourly.time.map((time, index) => {
     const forecastDate = time.slice(0, 10);
-    const dailyId = dailyIdByDate.get(forecastDate) ?? dailyForecasts[0]?.id ?? `browser-${forecastDate}`;
+    const dailyId =
+      dailyIdByDate.get(forecastDate) ??
+      dailyForecasts[0]?.id ??
+      `browser-${forecastDate}`;
 
     return {
       id: `${dailyId}-${time}`,
@@ -117,7 +128,9 @@ function buildHourly(dailyForecasts: DailyForecast[], forecast: OpenMeteoForecas
   });
 }
 
-export async function getSuggestions(query: string): Promise<LocationSuggestion[]> {
+export async function getSuggestions(
+  query: string,
+): Promise<LocationSuggestion[]> {
   if (!query.trim()) return [];
 
   const url = new URL(GEOCODING_URL);
@@ -138,14 +151,24 @@ export async function getSuggestions(query: string): Promise<LocationSuggestion[
   }));
 }
 
-export async function searchWeather(query: string): Promise<SearchResult & { hourly: HourlyForecast[]; geocoding: OpenMeteoGeocodingResult; forecast: OpenMeteoForecast; }> {
+export async function searchWeather(
+  query: string,
+): Promise<
+  SearchResult & {
+    hourly: HourlyForecast[];
+    geocoding: OpenMeteoGeocodingResult;
+    forecast: OpenMeteoForecast;
+  }
+> {
   const geocodingUrl = new URL(GEOCODING_URL);
   geocodingUrl.searchParams.set("name", query.trim());
   geocodingUrl.searchParams.set("count", "1");
   geocodingUrl.searchParams.set("language", "en");
   geocodingUrl.searchParams.set("format", "json");
 
-  const geocodingData = await fetchJson<OpenMeteoGeocodingResponse>(geocodingUrl.toString());
+  const geocodingData = await fetchJson<OpenMeteoGeocodingResponse>(
+    geocodingUrl.toString(),
+  );
   const geocoding = geocodingData.results?.[0];
   if (!geocoding) {
     throw new Error(`City "${query}" not found`);
@@ -156,26 +179,35 @@ export async function searchWeather(query: string): Promise<SearchResult & { hou
   forecastUrl.searchParams.set("longitude", String(geocoding.longitude));
   forecastUrl.searchParams.set("timezone", geocoding.timezone);
   forecastUrl.searchParams.set("forecast_days", "7");
-  forecastUrl.searchParams.set("current", [
-    "temperature_2m",
-    "weather_code",
-    "relative_humidity_2m",
-    "wind_speed_10m",
-    "precipitation",
-  ].join(","));
-  forecastUrl.searchParams.set("daily", [
-    "temperature_2m_max",
-    "temperature_2m_min",
-    "precipitation_sum",
-    "weather_code",
-    "wind_speed_10m_max",
-  ].join(","));
-  forecastUrl.searchParams.set("hourly", [
-    "temperature_2m",
-    "precipitation",
-    "wind_speed_10m",
-    "relative_humidity_2m",
-  ].join(","));
+  forecastUrl.searchParams.set(
+    "current",
+    [
+      "temperature_2m",
+      "weather_code",
+      "relative_humidity_2m",
+      "wind_speed_10m",
+      "precipitation",
+    ].join(","),
+  );
+  forecastUrl.searchParams.set(
+    "daily",
+    [
+      "temperature_2m_max",
+      "temperature_2m_min",
+      "precipitation_sum",
+      "weather_code",
+      "wind_speed_10m_max",
+    ].join(","),
+  );
+  forecastUrl.searchParams.set(
+    "hourly",
+    [
+      "temperature_2m",
+      "precipitation",
+      "wind_speed_10m",
+      "relative_humidity_2m",
+    ].join(","),
+  );
 
   const forecast = await fetchJson<OpenMeteoForecast>(forecastUrl.toString());
   const location = buildLocation(geocoding);
