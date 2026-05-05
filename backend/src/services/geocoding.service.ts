@@ -9,7 +9,10 @@ const MAX_RETRIES = 3;
 const INITIAL_DELAY_MS = 1000;
 
 // Request deduplication
-const pendingGeocodeRequests = new Map<string, Promise<GeocodingResult | null>>();
+const pendingGeocodeRequests = new Map<
+  string,
+  Promise<GeocodingResult | null>
+>();
 const pendingSuggestRequests = new Map<string, Promise<GeocodingResult[]>>();
 
 async function sleep(ms: number): Promise<void> {

@@ -21,7 +21,7 @@ export async function fetchForecast(
   timezone: string,
 ): Promise<OpenMeteoForecast> {
   const key = `forecast:${latitude.toFixed(6)},${longitude.toFixed(6)}`;
-  
+
   // Check cache first
   const cached = getCached<OpenMeteoForecast>(key);
   if (cached) return cached;
@@ -90,5 +90,6 @@ export async function fetchForecast(
 
   // Store the pending request so other requests can wait for it
   pendingForecastRequests.set(key, requestPromise);
-  
+
   return requestPromise;
+}
