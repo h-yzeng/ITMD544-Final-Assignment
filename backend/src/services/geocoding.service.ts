@@ -1,5 +1,6 @@
 import axios from "axios";
 import { GeocodingResult, GeocodingResponse } from "../types/weather";
+import { getCached, setCached } from "./simpleCache";
 
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 
@@ -42,24 +43,39 @@ async function retryRequest<T>(
 export async function geocodeCity(
   query: string,
 ): Promise<GeocodingResult | null> {
-  return retryRequest<GeocodingResponse>(
+  const key = `geocode:${query.toLowerCase()}`;
+  const cached = getCached<GeocodingResult | null>(key);
+  if (cached) return cached;
+
+  const result = await retryRequest<GeocodingResponse>(
     GEOCODING_URL,
     {
       params: { name: query, count: 1, language: "en", format: "json" },
     },
     (data) => data.results?.[0] ?? null,
   );
+
+  // cache for 10 minutes
+  setCached(key, result, 10 * 60 * 1000);
+  return result;
 }
 
 export async function suggestCities(
   query: string,
   count = 5,
 ): Promise<GeocodingResult[]> {
-  return retryRequest<GeocodingResponse>(
+  const key = `suggest:${query.toLowerCase()}:${count}`;
+  const cached = getCached<GeocodingResult[]>(key);
+  if (cached) return cached;
+
+  const results = await retryRequest<GeocodingResponse>(
     GEOCODING_URL,
     {
       params: { name: query, count, language: "en", format: "json" },
     },
     (data) => data.results ?? [],
   );
+
+  setCached(key, results, 10 * 60 * 1000);
+  return results;
 }

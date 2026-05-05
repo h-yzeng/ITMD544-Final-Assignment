@@ -1,5 +1,6 @@
 import axios from "axios";
 import { OpenMeteoForecast } from "../types/weather";
+import { getCached, setCached } from "./simpleCache";
 
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
@@ -16,6 +17,10 @@ export async function fetchForecast(
   longitude: number,
   timezone: string,
 ): Promise<OpenMeteoForecast> {
+  const key = `forecast:${latitude.toFixed(6)},${longitude.toFixed(6)}`;
+  const cached = getCached<OpenMeteoForecast>(key);
+  if (cached) return cached;
+
   let lastError;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -48,6 +53,8 @@ export async function fetchForecast(
           ].join(","),
         },
       });
+      // cache for 10 minutes
+      setCached(key, data, 10 * 60 * 1000);
       return data;
     } catch (error: any) {
       lastError = error;
