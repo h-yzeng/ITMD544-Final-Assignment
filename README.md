@@ -6,138 +6,119 @@ A full-stack weather application that lets users search for any city worldwide, 
 
 ## Architecture
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser                              │
-│   React 18 + Vite 5 (localhost:3000)                        │
-│   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐  │
-│   │SearchBar │ │WeatherCard│ │HourlyChart│ │ TagManager  │  │
-│   └──────────┘ └──────────┘ └──────────┘ └─────────────┘  │
-└───────────────────────┬─────────────────────────────────────┘
-                        │  HTTP /api/* (Vite proxy)
-┌───────────────────────▼─────────────────────────────────────┐
-│              Express 4 API  (localhost:3001)                 │
-│  ┌──────────┐ ┌──────────┐ ┌────────────┐ ┌─────────────┐  │
-│  │ /search  │ │/locations│ │ /forecasts │ │   /tags     │  │
-│  └──────────┘ └──────────┘ └────────────┘ └─────────────┘  │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │               Service Layer                           │  │
-│  │  geocoding · weather · location · forecast            │  │
-│  │  tag · searchLog                                      │  │
-│  └───────────────┬───────────────────────────────────────┘  │
-└──────────────────┼──────────────────────────────────────────┘
-          ┌────────┴────────┐
-          │                 │
-┌─────────▼──────┐  ┌───────▼───────────────────────────────┐
-│  Open-Meteo    │  │  Supabase (PostgreSQL)                 │
-│  (free, no key)│  │  locations · daily_forecasts           │
-│  Geocoding API │  │  hourly_forecasts · search_logs        │
-│  Forecast API  │  │  tags · location_tags                  │
-└────────────────┘  └───────────────────────────────────────┘
-```
+### System Overview
+
+| Component          | Role                                                                                    | Technology                |
+| ------------------ | --------------------------------------------------------------------------------------- | ------------------------- |
+| **Frontend Layer** | SPA serving weather UI with search, forecast display, hourly charts, and tag management | React 18 + Vite 5         |
+| **API Layer**      | REST API handling geocoding, forecast retrieval, caching, and tag operations            | Express.js 4              |
+| **Data Layer**     | Persistent storage of locations, forecasts, search logs, and tags                       | Supabase PostgreSQL       |
+| **External APIs**  | Real-time weather and geolocation data                                                  | Open-Meteo (free, no key) |
+
+### Architecture Rationale
+
+**Frontend: React 18 + Vite 5**
+
+- React chosen for its component-driven UI architecture and strong ecosystem. Reusable components (SearchBar, WeatherCard, HourlyChart) match the modular nature of weather data display.
+- Vite provides blazing-fast development experience with HMR and optimized production builds. Built-in proxy (`/api` → backend) eliminates CORS complexity during development.
+- TypeScript ensures type safety across component props and API responses, preventing runtime weather data display errors.
+
+**Backend: Express.js + TypeScript**
+
+- Express is lightweight and unopinionated, perfect for a focused API service without unnecessary overhead.
+- TypeScript adds compile-time safety for service layers that orchestrate complex database and external API interactions.
+- Layered architecture (routes → services → database) separates concerns: routes handle HTTP, services contain business logic (forecast calculation, tag assignment), and database layer abstracts Supabase queries.
+
+**Database: Supabase (PostgreSQL)**
+
+- Supabase provides managed PostgreSQL with real-time capabilities and built-in auth (if needed), eliminating infrastructure management.
+- PostgreSQL's support for complex relationships (1:N forecast hierarchies, N:M tag mappings) and cascading deletes ensures data integrity.
+- Normalized schema (6 tables) prevents data duplication and ensures consistent forecast updates across related records.
+
+**External Weather API: Open-Meteo**
+
+- Free tier requires no API key, reducing deployment friction and cost. Forecast and geocoding APIs return comprehensive JSON that maps directly to our data model.
+- Reliable uptime and accurate historical + forecast data make it suitable for production weather applications.
+
+**Caching Strategy**
+
+- Forecast data is cached in Supabase after the first search. Subsequent requests for the same location return cached data, reducing external API calls.
+- Search logs are persisted for audit trails and user history tracking.
+
+**Testing & CI/CD**
+
+- Jest + Supertest for unit and integration tests; mocked Supabase enables fast, deterministic test execution.
+- GitHub Actions CI pipeline ensures TypeScript builds successfully, all tests pass, and Docker image builds before merge.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology | Version | Notes |
-| --- | --- | --- | --- |
-| Runtime | Node.js | 20 LTS | Backend runtime |
-| Backend Framework | Express | 4.18 | REST API |
-| Backend Language | TypeScript | 5.3 | Strict mode |
-| Database Client | @supabase/supabase-js | 2.39 | Supabase/PostgreSQL |
-| HTTP Client | Axios | 1.6 | External API calls + frontend |
-| Logging | Winston | 3.11 | JSON + file transports |
-| API Docs | Swagger (swagger-jsdoc + swagger-ui-express) | 6 / 5 | Live at `/api/docs` |
-| Security | Helmet + CORS | 7 / 2 | HTTP headers + cross-origin |
-| Frontend Framework | React | 18.2 | SPA |
-| Frontend Build | Vite | 5.0 | Dev server + proxy |
-| Charts | Recharts | 2.10 | Hourly temperature chart |
-| Testing | Jest + Supertest | 29.7 / 6.3 | Unit + integration, 36 tests |
-| Containerization | Docker (multi-stage) | — | `backend/Dockerfile` |
-| Orchestration | Docker Compose | 3.9 | `docker-compose.yml` |
-| CI/CD | GitHub Actions | — | `.github/workflows/ci.yml` |
-| External API | Open-Meteo | — | Free, no API key required |
+| Layer              | Technology                                   | Version    | Notes                         |
+| ------------------ | -------------------------------------------- | ---------- | ----------------------------- |
+| Runtime            | Node.js                                      | 20 LTS     | Backend runtime               |
+| Backend Framework  | Express                                      | 4.18       | REST API                      |
+| Backend Language   | TypeScript                                   | 5.3        | Strict mode                   |
+| Database Client    | @supabase/supabase-js                        | 2.39       | Supabase/PostgreSQL           |
+| HTTP Client        | Axios                                        | 1.6        | External API calls + frontend |
+| Logging            | Winston                                      | 3.11       | JSON + file transports        |
+| API Docs           | Swagger (swagger-jsdoc + swagger-ui-express) | 6 / 5      | Live at `/api/docs`           |
+| Security           | Helmet + CORS                                | 7 / 2      | HTTP headers + cross-origin   |
+| Frontend Framework | React                                        | 18.2       | SPA                           |
+| Frontend Build     | Vite                                         | 5.0        | Dev server + proxy            |
+| Charts             | Recharts                                     | 2.10       | Hourly temperature chart      |
+| Testing            | Jest + Supertest                             | 29.7 / 6.3 | Unit + integration, 36 tests  |
+| Containerization   | Docker (multi-stage)                         | —          | `backend/Dockerfile`          |
+| Orchestration      | Docker Compose                               | 3.9        | `docker-compose.yml`          |
+| CI/CD              | GitHub Actions                               | —          | `.github/workflows/ci.yml`    |
+| External API       | Open-Meteo                                   | —          | Free, no API key required     |
 
 ---
 
 ## Database Schema
 
-Six tables with clear ownership boundaries:
+### Tables Overview
 
-```text
-locations
-├── id            UUID  PK
-├── name          TEXT
-├── country       TEXT
-├── latitude      DECIMAL(9,6)
-├── longitude     DECIMAL(10,6)
-├── timezone      TEXT
-└── created_at    TIMESTAMPTZ
-     │
-     ├──< daily_forecasts (1:N, CASCADE DELETE)
-     │    ├── id               UUID  PK
-     │    ├── location_id      UUID  FK → locations
-     │    ├── forecast_date    DATE
-     │    ├── temp_max         DECIMAL
-     │    ├── temp_min         DECIMAL
-     │    ├── precipitation_sum DECIMAL
-     │    ├── weather_code     INTEGER
-     │    ├── wind_speed_max   DECIMAL
-     │    └── created_at       TIMESTAMPTZ
-     │         │
-     │         └──< hourly_forecasts (1:N, CASCADE DELETE)
-     │              ├── id                  UUID  PK
-     │              ├── daily_forecast_id   UUID  FK → daily_forecasts
-     │              ├── hour                INTEGER (0–23)
-     │              ├── temperature         DECIMAL
-     │              ├── precipitation       DECIMAL
-     │              ├── wind_speed          DECIMAL
-     │              └── humidity            INTEGER (0–100)
-     │
-     ├──< search_logs (1:N, SET NULL on location delete)
-     │    ├── id            UUID  PK
-     │    ├── location_id   UUID  FK → locations (nullable)
-     │    ├── query_string  TEXT
-     │    └── searched_at   TIMESTAMPTZ
-     │
-     └──< location_tags (N:M junction, CASCADE DELETE)
-          ├── location_id  UUID  FK → locations
-          └── tag_id       UUID  FK → tags
+| Table                | Purpose                                          | Key Columns                                                                                                     |
+| -------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| **locations**        | Stores all geocoded cities and coordinates       | id (UUID), name, country, latitude, longitude, timezone, created_at                                             |
+| **daily_forecasts**  | 7-day forecast summaries per location            | id (UUID), location_id (FK), forecast_date, temp_max, temp_min, precipitation_sum, weather_code, wind_speed_max |
+| **hourly_forecasts** | 24 hourly data points per forecast day           | id (UUID), daily_forecast_id (FK), hour (0–23), temperature, precipitation, wind_speed, humidity                |
+| **search_logs**      | Audit trail of all location searches             | id (UUID), location_id (FK, nullable), query_string, searched_at                                                |
+| **tags**             | Climate category tags (Coastal, Mountain, etc.)  | id (UUID), name (unique), color (hex)                                                                           |
+| **location_tags**    | Many-to-many junction between locations and tags | location_id (FK), tag_id (FK)                                                                                   |
 
-tags
-├── id     UUID  PK
-├── name   TEXT  UNIQUE
-└── color  TEXT  (hex color, default #3B82F6)
-```
+### Relationships & Constraints
 
-**Relationships:**
+| Relationship                      | Type | Behavior       | Purpose                                                                           |
+| --------------------------------- | ---- | -------------- | --------------------------------------------------------------------------------- |
+| location → daily_forecasts        | 1:N  | CASCADE DELETE | One location has up to 7 daily forecasts; deleting location removes all forecasts |
+| daily_forecast → hourly_forecasts | 1:N  | CASCADE DELETE | One daily forecast has 24 hourly data points; deletion cascades to hourly rows    |
+| location → search_logs            | 1:N  | SET NULL       | One location may have many search logs; logs preserved even if location deleted   |
+| location ↔ tags                   | N:M  | CASCADE DELETE | Many locations can share tags; junction table enforces referential integrity      |
 
-- A `location` has many `daily_forecasts` (7 days per search). Deleting a location cascades to all its forecasts and associated hourly rows.
-- A `daily_forecast` has exactly 24 `hourly_forecasts` (one per hour).
-- `search_logs` records every lookup. If a location is later deleted, the log entry is preserved with `location_id` set to NULL.
-- `location_tags` is a many-to-many junction. A location can have multiple tags; a tag can be applied to multiple locations.
+### Seed Data
 
-**Seed data:** Five default tags are inserted on migration — Coastal, Mountain, Desert, Tropical, Urban.
+On database initialization, five default climate tags are inserted: Coastal, Mountain, Desert, Tropical, Urban. Each has a predefined hex color for consistent UI rendering.
 
 ---
 
 ## API Endpoints
 
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-| GET | `/health` | Health check — returns `{ status, timestamp }` |
-| GET | `/api/docs` | Swagger UI (interactive API documentation) |
-| GET | `/api/search?q=<city>` | Geocode city, fetch forecast, cache result; returns location + 7-day daily array |
-| GET | `/api/search/history` | Last 20 search log entries |
-| GET | `/api/locations` | All cached locations |
-| GET | `/api/locations/:id` | Single location with its tags |
-| DELETE | `/api/locations/:id` | Delete location and all cascaded data |
-| GET | `/api/forecasts/:locationId` | 7-day daily forecasts for a location |
-| GET | `/api/forecasts/:locationId/hourly?dailyId=` | 24 hourly rows for a specific day |
-| GET | `/api/tags` | All available climate tags |
-| POST | `/api/tags/locations/:id/tags` | Assign a tag to a location (body: `{ tagId }`) |
-| DELETE | `/api/tags/locations/:id/tags/:tagId` | Remove a tag from a location |
+| Method | Path                                         | Description                                                                      |
+| ------ | -------------------------------------------- | -------------------------------------------------------------------------------- |
+| GET    | `/health`                                    | Health check — returns `{ status, timestamp }`                                   |
+| GET    | `/api/docs`                                  | Swagger UI (interactive API documentation)                                       |
+| GET    | `/api/search?q=<city>`                       | Geocode city, fetch forecast, cache result; returns location + 7-day daily array |
+| GET    | `/api/search/history`                        | Last 20 search log entries                                                       |
+| GET    | `/api/locations`                             | All cached locations                                                             |
+| GET    | `/api/locations/:id`                         | Single location with its tags                                                    |
+| DELETE | `/api/locations/:id`                         | Delete location and all cascaded data                                            |
+| GET    | `/api/forecasts/:locationId`                 | 7-day daily forecasts for a location                                             |
+| GET    | `/api/forecasts/:locationId/hourly?dailyId=` | 24 hourly rows for a specific day                                                |
+| GET    | `/api/tags`                                  | All available climate tags                                                       |
+| POST   | `/api/tags/locations/:id/tags`               | Assign a tag to a location (body: `{ tagId }`)                                   |
+| DELETE | `/api/tags/locations/:id/tags/:tagId`        | Remove a tag from a location                                                     |
 
 ---
 
@@ -170,16 +151,55 @@ cd ITMD544-Final-Assignment
 
 ### 4. Configure Environment Variables
 
+#### Backend Environment Variables (Local Development)
+
 Create a `.env` file inside the `backend/` directory:
 
 ```env
+# Required: Supabase PostgreSQL connection details
+# Get these from: Supabase Dashboard → Project Settings → API
 SUPABASE_URL=https://<your-project-ref>.supabase.co
 SUPABASE_ANON_KEY=<your-anon-key>
+
+# Optional: Set to 3001 for development (Render may use a different port)
 PORT=3001
+
+# Optional: Set to development for local, production for deployed
 NODE_ENV=development
 ```
 
-> The frontend has no environment variables — it communicates with the backend through Vite's built-in proxy (see `frontend/vite.config.ts`).
+**Where to find these values:**
+
+- `SUPABASE_URL`: Supabase dashboard → Project Settings → API → Project URL
+- `SUPABASE_ANON_KEY`: Supabase dashboard → Project Settings → API → Anon/public key (use the public key, NOT the service role key)
+
+#### Frontend Environment Variables (Netlify)
+
+The frontend is a static SPA. Add these environment variables in **Netlify Dashboard → Site Settings → Build & Deploy → Environment:**
+
+```env
+# Optional: Backend API URL if deploying backend elsewhere
+# Leave empty or unset if backend is at https://weather-app-backend.onrender.com
+VITE_API_URL=https://weather-app-backend.onrender.com
+```
+
+> If you don't set this, the frontend will use relative paths and route `/api/*` requests based on the current domain.
+
+#### Backend Environment Variables (Render Production)
+
+These are auto-configured in `render.yaml` but must be manually set in **Render Dashboard → Environment:**
+
+```env
+# Required: Supabase PostgreSQL connection details (same as local)
+SUPABASE_URL=https://<your-project-ref>.supabase.co
+SUPABASE_ANON_KEY=<your-anon-key>
+
+# Must be set for production
+NODE_ENV=production
+
+# Optional: Render will auto-assign this, but you can override
+PORT=3001
+```
 
 ### 5. Start the Backend
 
@@ -248,79 +268,74 @@ Tests use Jest 29 with ts-jest. Integration tests use Supertest against the Expr
 
 GitHub Actions (`.github/workflows/ci.yml`) runs three jobs on every push and pull request to `main`:
 
-| Job | Steps |
-| --- | ----- |
-| **Backend** | `npm ci` → TypeScript type-check → run all tests with coverage → `tsc` build |
-| **Docker Build** | Builds the multi-stage Docker image (depends on Backend job passing) |
-| **Frontend** | `npm ci` → TypeScript type-check → Vite production build |
+| Job              | Steps                                                                        |
+| ---------------- | ---------------------------------------------------------------------------- |
+| **Backend**      | `npm ci` → TypeScript type-check → run all tests with coverage → `tsc` build |
+| **Docker Build** | Builds the multi-stage Docker image (depends on Backend job passing)         |
+| **Frontend**     | `npm ci` → TypeScript type-check → Vite production build                     |
 
 ---
 
-## Project Structure
+## Deployment
 
-```text
-ITMD544-Final-Assignment/
-├── .github/
-│   └── workflows/
-│       └── ci.yml              # GitHub Actions CI pipeline
-├── backend/
-│   ├── Dockerfile              # Multi-stage production image
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── jest.config.ts
-│   ├── logs/                   # Winston log output (gitignored)
-│   ├── src/
-│   │   ├── server.ts           # Entry point — starts HTTP server
-│   │   ├── app.ts              # Express app setup (middleware, routes)
-│   │   ├── config/
-│   │   │   ├── database.ts     # Supabase client initialization
-│   │   │   ├── logger.ts       # Winston logger configuration
-│   │   │   └── swagger.ts      # Swagger/OpenAPI spec setup
-│   │   ├── db/
-│   │   │   └── migrations.sql  # DDL for all 6 tables + seed data
-│   │   ├── middleware/
-│   │   │   ├── errorHandler.ts # Global error handler
-│   │   │   └── requestLogger.ts# Per-request Winston logging
-│   │   ├── routes/
-│   │   │   ├── index.ts        # Router aggregator
-│   │   │   ├── search.routes.ts
-│   │   │   ├── location.routes.ts
-│   │   │   ├── forecast.routes.ts
-│   │   │   └── tag.routes.ts
-│   │   ├── services/
-│   │   │   ├── geocoding.service.ts  # Open-Meteo geocoding
-│   │   │   ├── weather.service.ts    # Open-Meteo forecast fetch
-│   │   │   ├── location.service.ts   # Supabase location CRUD
-│   │   │   ├── forecast.service.ts   # Supabase forecast CRUD
-│   │   │   ├── tag.service.ts        # Supabase tag CRUD
-│   │   │   └── searchLog.service.ts  # Search audit logging
-│   │   └── types/
-│   │       └── weather.ts      # Shared TypeScript interfaces
-│   └── tests/
-│       ├── unit/               # Service-layer unit tests (mocked Supabase)
-│       └── integration/        # Route-layer integration tests (Supertest)
-├── frontend/
-│   ├── vite.config.ts          # Vite config + /api proxy
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── src/
-│       ├── main.tsx            # React entry point
-│       ├── App.tsx             # Root component + state management
-│       ├── index.css           # Global styles
-│       ├── api/
-│       │   └── client.ts       # Axios API client (all endpoints)
-│       ├── components/
-│       │   ├── SearchBar.tsx
-│       │   ├── WeatherCard.tsx
-│       │   ├── DailyForecastStrip.tsx
-│       │   ├── HourlyChart.tsx     # Recharts line chart
-│       │   ├── RecentSearches.tsx
-│       │   └── TagManager.tsx
-│       └── types/              # Frontend TypeScript interfaces
-├── docs/                       # Additional documentation
-├── docker-compose.yml          # Docker Compose for backend service
-└── README.md
+### Frontend: Netlify
+
+The frontend is a static SPA built with Vite and deployed to **Netlify** for CDN distribution and automatic deployments from Git.
+
+**Deployment Link:** [https://getweathernowat.netlify.app](https://getweathernowat.netlify.app)
+
+**Build Configuration:**
+
+- **Build Command:** `npm run build`
+- **Publish Directory:** `dist/`
+- **Node Version:** 20
+
+**Deployment Steps:**
+
+1. Connect your GitHub repository to Netlify.
+2. Set the build command to `npm run build` and publish directory to `dist`.
+3. Netlify automatically deploys on every push to the `main` branch.
+
+**Important:** The frontend expects the backend API at a specific URL. Update the `VITE_API_URL` environment variable in your Netlify deployment settings if needed (currently defaults to the backend URL below).
+
+### Backend: Render
+
+The backend is deployed to **Render** as a Node.js web service using a `render.yaml` configuration file. Render automatically rebuilds and redeploys on every push.
+
+**Deployment Link:** [https://weather-app-backend.onrender.com](https://weather-app-backend.onrender.com)
+
+**Build Configuration:**
+
+- **Build Command:** `cd backend && npm install && npm run build`
+- **Start Command:** `cd backend && npm start`
+- **Node Version:** 20
+
+**Environment Variables (set in Render dashboard):**
+
+```env
+SUPABASE_URL=https://<your-project-ref>.supabase.co
+SUPABASE_ANON_KEY=<your-anon-key>
+NODE_ENV=production
+PORT=3001
 ```
+
+**Deployment Steps:**
+
+1. Connect your GitHub repository to Render.
+2. Render will auto-detect the `render.yaml` file in the root directory.
+3. Set the environment variables in the Render dashboard.
+4. Render automatically rebuilds and redeploys on every push to the `main` branch.
+
+### Database: Supabase
+
+The PostgreSQL database is hosted on **Supabase** (free tier).
+
+1. Create a project at [https://supabase.com](https://supabase.com).
+2. In the SQL Editor, run the contents of `backend/src/db/migrations.sql`.
+3. Copy your Project URL and anon/public API key from **Project Settings → API**.
+4. Set these as environment variables in both Render (backend) and Netlify (frontend) dashboards.
+
+**Important:** Use the `anon/public` key for client-side access. Do not expose the `service_role` key in frontend code.
 
 ---
 
