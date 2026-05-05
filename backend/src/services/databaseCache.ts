@@ -1,13 +1,13 @@
-import { supabase } from '../config/database';
+import { supabase } from "../config/database";
 
-const CACHE_TABLE = 'api_cache';
+const CACHE_TABLE = "api_cache";
 
 export async function getCachedFromDB<T>(key: string): Promise<T | null> {
   try {
     const { data, error } = await supabase
       .from(CACHE_TABLE)
-      .select('value, expires_at')
-      .eq('cache_key', key)
+      .select("value, expires_at")
+      .eq("cache_key", key)
       .single();
 
     if (error || !data) return null;
@@ -15,7 +15,7 @@ export async function getCachedFromDB<T>(key: string): Promise<T | null> {
     // Check if expired
     if (new Date(data.expires_at) < new Date()) {
       // Async delete, don't wait
-      supabase.from(CACHE_TABLE).delete().eq('cache_key', key).then();
+      supabase.from(CACHE_TABLE).delete().eq("cache_key", key).then();
       return null;
     }
 
@@ -41,7 +41,7 @@ export async function setCachedToDB<T>(
         value,
         expires_at: expiresAt,
       },
-      { onConflict: 'cache_key' },
+      { onConflict: "cache_key" },
     );
   } catch (err) {
     // Fail gracefully — cache write failure doesn't break the app
@@ -51,10 +51,7 @@ export async function setCachedToDB<T>(
 
 export async function clearCacheForKeyPattern(pattern: string): Promise<void> {
   try {
-    await supabase
-      .from(CACHE_TABLE)
-      .delete()
-      .ilike('cache_key', pattern);
+    await supabase.from(CACHE_TABLE).delete().ilike("cache_key", pattern);
   } catch (err) {
     console.error(`Cache clear failed for pattern ${pattern}:`, err);
   }
