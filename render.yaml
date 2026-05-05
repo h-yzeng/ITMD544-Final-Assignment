@@ -3,7 +3,7 @@ services:
     name: weather-app-backend
     runtime: node
     plan: free
-    buildCommand: cd backend && npm ci && npm run build
+    buildCommand: cd backend && npm ci --legacy-peer-deps && npm run build
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
