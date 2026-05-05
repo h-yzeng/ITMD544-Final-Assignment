@@ -9,7 +9,8 @@ import type {
   LocationSuggestion,
 } from '../types';
 
-const api = axios.create({ baseURL: '/api' });
+const baseURL = import.meta.env.VITE_API_URL || '/api';
+const api = axios.create({ baseURL: `${baseURL}/api` });
 
 export async function searchCity(query: string): Promise<SearchResult> {
   const { data } = await api.get<SearchResult>('/search', { params: { q: query } });
