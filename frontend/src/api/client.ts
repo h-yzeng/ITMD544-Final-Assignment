@@ -1,5 +1,13 @@
 import axios from 'axios';
-import type { Location, DailyForecast, HourlyForecast, Tag, SearchResult, SearchHistoryEntry } from '../types';
+import type {
+  Location,
+  DailyForecast,
+  HourlyForecast,
+  Tag,
+  SearchResult,
+  SearchHistoryEntry,
+  LocationSuggestion,
+} from '../types';
 
 const api = axios.create({ baseURL: '/api' });
 
@@ -10,6 +18,14 @@ export async function searchCity(query: string): Promise<SearchResult> {
 
 export async function getSearchHistory(): Promise<SearchHistoryEntry[]> {
   const { data } = await api.get<SearchHistoryEntry[]>('/search/history');
+  return data;
+}
+
+export async function getSuggestions(query: string): Promise<LocationSuggestion[]> {
+  if (!query.trim()) return [];
+  const { data } = await api.get<LocationSuggestion[]>('/search/suggestions', {
+    params: { q: query },
+  });
   return data;
 }
 

@@ -9,11 +9,11 @@ export function RecentSearches({ history, onSelect }: Props) {
   if (history.length === 0) return null;
   return (
     <div className="recent-searches">
-      <h3>Recent Searches</h3>
+      <p className="recent-searches__title">Recent Searches</p>
       <ul>
-        {history.slice(0, 8).map((entry) => (
+        {history.slice(0, 10).map((entry) => (
           <li key={entry.id}>
-            <button onClick={() => onSelect(entry.query_string)} className="recent-item">
+            <button type="button" onClick={() => onSelect(entry.query_string)} className="recent-item">
               <span>{entry.locations?.name ?? entry.query_string}</span>
               <span className="recent-item__time">
                 {new Date(entry.searched_at).toLocaleDateString()}

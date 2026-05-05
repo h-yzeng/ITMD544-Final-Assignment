@@ -36,9 +36,18 @@ export interface Tag {
   color: string;
 }
 
+export interface CurrentConditions {
+  temperature: number | null;
+  weather_code: number | null;
+  humidity: number | null;
+  wind_speed: number | null;
+  precipitation: number | null;
+}
+
 export interface SearchResult {
   location: Location;
   daily: DailyForecast[];
+  current: CurrentConditions | null;
 }
 
 export interface SearchHistoryEntry {
@@ -46,4 +55,14 @@ export interface SearchHistoryEntry {
   query_string: string;
   searched_at: string;
   locations: { name: string; country: string } | null;
+}
+
+export interface LocationSuggestion {
+  id: number;
+  name: string;
+  country: string;
+  country_code: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
 }

@@ -16,6 +16,14 @@ export interface OpenMeteoForecast {
   latitude: number;
   longitude: number;
   timezone: string;
+  current?: {
+    time: string;
+    temperature_2m: number | null;
+    weather_code: number | null;
+    relative_humidity_2m: number | null;
+    wind_speed_10m: number | null;
+    precipitation: number | null;
+  };
   daily: {
     time: string[];
     temperature_2m_max: number[];

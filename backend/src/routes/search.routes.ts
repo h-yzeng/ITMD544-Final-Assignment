@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { geocodeCity } from '../services/geocoding.service';
+import { geocodeCity, suggestCities } from '../services/geocoding.service';
 import { fetchForecast } from '../services/weather.service';
 import { createOrGetLocation } from '../services/location.service';
 import { saveDailyForecasts } from '../services/forecast.service';
@@ -7,26 +7,20 @@ import { logSearch, getRecentSearches } from '../services/searchLog.service';
 
 export const searchRouter = Router();
 
-/**
- * @swagger
- * /search:
- *   get:
- *     summary: Search for a city and retrieve its 7-day forecast
- *     parameters:
- *       - in: query
- *         name: q
- *         required: true
- *         schema: { type: string }
- *     responses:
- *       200:
- *         description: Location and daily forecast data
- *       400:
- *         description: Missing query parameter
- *       404:
- *         description: City not found
- *       500:
- *         $ref: '#/components/schemas/Error'
- */
+searchRouter.get('/suggestions', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const q = req.query.q as string;
+    if (!q?.trim() || q.trim().length < 2) {
+      res.json([]);
+      return;
+    }
+    const results = await suggestCities(q.trim(), 5);
+    res.json(results);
+  } catch (err) {
+    next(err);
+  }
+});
+
 searchRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = req.query.q as string;
@@ -57,21 +51,23 @@ searchRouter.get('/', async (req: Request, res: Response, next: NextFunction) =>
       logSearch(query, location.id),
     ]);
 
-    res.json({ location, daily });
+    const raw = forecast.current;
+    const current = raw
+      ? {
+          temperature: raw.temperature_2m,
+          weather_code: raw.weather_code,
+          humidity: raw.relative_humidity_2m,
+          wind_speed: raw.wind_speed_10m,
+          precipitation: raw.precipitation,
+        }
+      : null;
+
+    res.json({ location, daily, current });
   } catch (err) {
     next(err);
   }
 });
 
-/**
- * @swagger
- * /search/history:
- *   get:
- *     summary: Get recent search history
- *     responses:
- *       200:
- *         description: Array of recent searches with location info
- */
 searchRouter.get('/history', async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const history = await getRecentSearches(20);

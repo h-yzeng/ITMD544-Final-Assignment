@@ -14,6 +14,13 @@ export async function fetchForecast(
       longitude,
       timezone,
       forecast_days: 7,
+      current: [
+        'temperature_2m',
+        'weather_code',
+        'relative_humidity_2m',
+        'wind_speed_10m',
+        'precipitation',
+      ].join(','),
       daily: [
         'temperature_2m_max',
         'temperature_2m_min',

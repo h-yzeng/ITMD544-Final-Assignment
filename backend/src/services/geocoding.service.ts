@@ -9,3 +9,10 @@ export async function geocodeCity(query: string): Promise<GeocodingResult | null
   });
   return data.results?.[0] ?? null;
 }
+
+export async function suggestCities(query: string, count = 5): Promise<GeocodingResult[]> {
+  const { data } = await axios.get<GeocodingResponse>(GEOCODING_URL, {
+    params: { name: query, count, language: 'en', format: 'json' },
+  });
+  return data.results ?? [];
+}

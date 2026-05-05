@@ -5,7 +5,6 @@
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(76, 184, 240, 0.15);
-  transition: background 0.25s ease;
 }
 .hero-card::before {
   content: '';
@@ -23,6 +22,14 @@
   background: radial-gradient(circle, var(--hero-glow-2) 0%, transparent 70%);
   pointer-events: none;
 }
+
+/* ── Time-of-day gradient overrides ── */
+.hero-card--night     { background: linear-gradient(135deg, #1a0836 0%, #0d0f2e 45%, #050810 100%); }
+.hero-card--dawn      { background: linear-gradient(135deg, #1e0a4a 0%, #1a2e70 50%, #0d4080 100%); }
+.hero-card--morning   { background: linear-gradient(135deg, #0a3878 0%, #0e5aaa 50%, #1472c2 100%); }
+.hero-card--midday    { background: linear-gradient(135deg, #0a72c8 0%, #1a96e0 45%, #28b0f0 100%); }
+.hero-card--afternoon { background: linear-gradient(135deg, #0a4a9a 0%, #1a3a8a 50%, #1a2070 100%); }
+.hero-card--evening   { background: linear-gradient(135deg, #1a1050 0%, #0f1545 40%, #0a0d30 100%); }
 
 .hero-top {
   display: flex;
@@ -73,6 +80,8 @@
 }
 .hero-country { color: var(--hero-sub); font-size: 0.9rem; margin-top: 0.25rem; }
 .hero-date { color: var(--hero-sub); opacity: 0.75; font-size: 0.8125rem; margin-top: 0.25rem; }
+.hero-time { color: var(--hero-sub); font-size: 0.9rem; margin-top: 0.3rem; font-weight: 500; }
+.hero-tz { opacity: 0.6; font-size: 0.8rem; font-weight: 400; margin-left: 0.25rem; }
 
 .hero-stats {
   display: grid;

@@ -26,9 +26,10 @@ const WMO_OUTLOOK: Record<number, { headline: string; detail: string }> = {
 interface Props {
   today: DailyForecast;
   unit: 'C' | 'F';
+  dayLabel?: string;
 }
 
-export function OutlookSection({ today, unit }: Props) {
+export function OutlookSection({ today, unit, dayLabel = "Today" }: Props) {
   const code = today.weather_code ?? 2;
   const outlook = WMO_OUTLOOK[code] ?? {
     headline: 'Variable conditions.',
@@ -45,7 +46,7 @@ export function OutlookSection({ today, unit }: Props) {
 
   return (
     <div className="outlook-section">
-      <p className="section-title">Today's Outlook</p>
+      <p className="section-title">{dayLabel}'s Outlook</p>
       <p className="outlook-headline">{outlook.headline}{tempStr}{windStr}</p>
       <p className="outlook-detail">{outlook.detail}</p>
     </div>

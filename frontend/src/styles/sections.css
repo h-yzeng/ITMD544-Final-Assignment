@@ -56,9 +56,14 @@
   min-width: 88px;
   color: var(--text);
   flex-shrink: 0;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s, transform 0.15s ease, box-shadow 0.15s ease;
 }
-.daily-card:hover { border-color: var(--card-hover-border); background: var(--card-hover-bg); }
+.daily-card:hover {
+  border-color: var(--card-hover-border);
+  background: var(--card-hover-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
 .daily-card--selected { border-color: var(--accent); background: rgba(26, 110, 181, 0.15); }
 
 .daily-card__day {
@@ -88,8 +93,7 @@
 
 .hourly-inner {
   position: relative;
-  width: var(--total-w, auto);
-  min-width: var(--total-w, auto);
+  width: max-content;
 }
 .hourly-row { display: flex; }
 .hourly-col {
@@ -100,7 +104,6 @@
   align-items: center;
 }
 .hourly-col--icon { padding-bottom: 4px; }
-.hourly-col--precip { justify-content: flex-end; padding-bottom: 4px; }
 
 .hourly-curve-zone { position: relative; height: 96px; }
 .hourly-curve-svg  { position: absolute; top: 0; left: 0; }
@@ -112,42 +115,59 @@
   font-weight: 500;
 }
 
-/* position driven by --tl-left / --tl-top CSS custom properties */
-.hourly-temp-label {
-  position: absolute;
-  left: var(--tl-left);
-  top: var(--tl-top);
-  transform: translateX(-50%);
-  font-size: 0.8125rem;
+/* SVG temperature labels */
+.hourly-temp-svg-label {
+  font-size: 13px;
   font-weight: 600;
+  fill: var(--text);
+}
+
+/* SVG precipitation bars strip */
+.hourly-precip-svg {
+  display: block;
+  border-top: 1px solid var(--border);
+  transition: border-color 0.25s ease;
+}
+
+/* SVG precipitation value labels */
+.hourly-precip-vals-svg { display: block; }
+.hourly-precip-svg-val { font-size: 11px; fill: #60a5fa; }
+
+/* ── Hourly scroll nav buttons ── */
+.hourly-nav-wrap { position: relative; }
+.hourly-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 18, 35, 0.82);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.15s, opacity 0.15s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.hourly-nav-btn:hover {
+  background: rgba(26, 110, 181, 0.85);
+  transform: translateY(-50%) scale(1.1);
+}
+.hourly-nav-btn--left { left: 6px; }
+.hourly-nav-btn--right { right: 6px; }
+[data-theme="light"] .hourly-nav-btn {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: var(--border);
   color: var(--text);
-  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 60, 120, 0.12);
 }
-
-.hourly-precip-bars {
-  display: flex;
-  align-items: flex-end;
-  height: 36px;
-  border-top: 1px solid var(--border);
-}
-
-/* height driven by --bar-h CSS custom property */
-.hourly-precip-bar {
-  width: 8px;
-  height: var(--bar-h, 4px);
-  background: #60a5fa;
-  border-radius: 3px 3px 0 0;
-  opacity: 0.85;
-}
-
-.hourly-precip-vals {
-  display: flex;
-  border-top: 1px solid var(--border);
-  padding-top: 4px;
-  padding-bottom: 6px;
-}
-
-.hourly-precip-val { font-size: 0.6875rem; color: #60a5fa; padding-top: 2px; }
+[data-theme="light"] .hourly-nav-btn:hover { background: var(--surface-2); }
 
 @media (max-width: 960px) {
   .daily-strip--centered { justify-content: flex-start; overflow-x: auto; }

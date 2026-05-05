@@ -14,6 +14,11 @@
   /* header */
   --header-bg: #060a11;
   --header-border: #1e2e4a;
+  --header-h: 62px;
+  /* sidebar */
+  --sidebar-w: 232px;
+  --sidebar-bg: #07090f;
+  --sidebar-border: #161e2e;
   /* hero card */
   --hero-from: #071840;
   --hero-via: #0a3872;
@@ -42,6 +47,8 @@
   --danger: #dc2626;
   --header-bg: #ffffff;
   --header-border: #ccd9e8;
+  --sidebar-bg: #f8fafc;
+  --sidebar-border: #dce8f0;
   --hero-from: #1255a0;
   --hero-via: #1a72c2;
   --hero-to: #2492d8;
