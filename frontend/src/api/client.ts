@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import type {
   Location,
   DailyForecast,
@@ -7,31 +7,35 @@ import type {
   SearchResult,
   SearchHistoryEntry,
   LocationSuggestion,
-} from '../types';
+} from "../types";
 
-const baseURL = import.meta.env.VITE_API_URL || '/api';
+const baseURL = import.meta.env.VITE_API_URL || "/api";
 const api = axios.create({ baseURL: `${baseURL}/api` });
 
 export async function searchCity(query: string): Promise<SearchResult> {
-  const { data } = await api.get<SearchResult>('/search', { params: { q: query } });
+  const { data } = await api.get<SearchResult>("/search", {
+    params: { q: query },
+  });
   return data;
 }
 
 export async function getSearchHistory(): Promise<SearchHistoryEntry[]> {
-  const { data } = await api.get<SearchHistoryEntry[]>('/search/history');
+  const { data } = await api.get<SearchHistoryEntry[]>("/search/history");
   return data;
 }
 
-export async function getSuggestions(query: string): Promise<LocationSuggestion[]> {
+export async function getSuggestions(
+  query: string,
+): Promise<LocationSuggestion[]> {
   if (!query.trim()) return [];
-  const { data } = await api.get<LocationSuggestion[]>('/search/suggestions', {
+  const { data } = await api.get<LocationSuggestion[]>("/search/suggestions", {
     params: { q: query },
   });
   return data;
 }
 
 export async function getLocations(): Promise<Location[]> {
-  const { data } = await api.get<Location[]>('/locations');
+  const { data } = await api.get<Location[]>("/locations");
   return data;
 }
 
@@ -44,27 +48,41 @@ export async function deleteLocation(id: string): Promise<void> {
   await api.delete(`/locations/${id}`);
 }
 
-export async function getDailyForecasts(locationId: string): Promise<DailyForecast[]> {
+export async function getDailyForecasts(
+  locationId: string,
+): Promise<DailyForecast[]> {
   const { data } = await api.get<DailyForecast[]>(`/forecasts/${locationId}`);
   return data;
 }
 
-export async function getHourlyForecasts(locationId: string, dailyId: string): Promise<HourlyForecast[]> {
-  const { data } = await api.get<HourlyForecast[]>(`/forecasts/${locationId}/hourly`, {
-    params: { dailyId },
-  });
+export async function getHourlyForecasts(
+  locationId: string,
+  dailyId: string,
+): Promise<HourlyForecast[]> {
+  const { data } = await api.get<HourlyForecast[]>(
+    `/forecasts/${locationId}/hourly`,
+    {
+      params: { dailyId },
+    },
+  );
   return data;
 }
 
 export async function getTags(): Promise<Tag[]> {
-  const { data } = await api.get<Tag[]>('/tags');
+  const { data } = await api.get<Tag[]>("/tags");
   return data;
 }
 
-export async function addTagToLocation(locationId: string, tagId: string): Promise<void> {
+export async function addTagToLocation(
+  locationId: string,
+  tagId: string,
+): Promise<void> {
   await api.post(`/tags/locations/${locationId}/tags`, { tagId });
 }
 
-export async function removeTagFromLocation(locationId: string, tagId: string): Promise<void> {
+export async function removeTagFromLocation(
+  locationId: string,
+  tagId: string,
+): Promise<void> {
   await api.delete(`/tags/locations/${locationId}/tags/${tagId}`);
 }
