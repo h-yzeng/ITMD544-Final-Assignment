@@ -1,6 +1,6 @@
 import axios from "axios";
 import { OpenMeteoForecast } from "../types/weather";
-import { getCached, setCached } from "./simpleCache";
+import { getCachedFromDB, setCachedToDB } from "./databaseCache";
 
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
@@ -22,8 +22,8 @@ export async function fetchForecast(
 ): Promise<OpenMeteoForecast> {
   const key = `forecast:${latitude.toFixed(6)},${longitude.toFixed(6)}`;
 
-  // Check cache first
-  const cached = getCached<OpenMeteoForecast>(key);
+  // Check database cache first
+  const cached = await getCachedFromDB<OpenMeteoForecast>(key);
   if (cached) return cached;
 
   // If another request for this location is already in flight, wait for it
@@ -65,8 +65,8 @@ export async function fetchForecast(
             ].join(","),
           },
         });
-        // cache for 10 minutes
-        setCached(key, data, 10 * 60 * 1000);
+        // cache for 10 minutes (persists across server restarts)
+        await setCachedToDB(key, data, 10 * 60 * 1000);
         pendingForecastRequests.delete(key);
         return data;
       } catch (error: any) {

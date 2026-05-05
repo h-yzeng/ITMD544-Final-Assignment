@@ -1,6 +1,6 @@
 import axios from "axios";
 import { GeocodingResult, GeocodingResponse } from "../types/weather";
-import { getCached, setCached } from "./simpleCache";
+import { getCachedFromDB, setCachedToDB } from "./databaseCache";
 
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 
@@ -23,7 +23,7 @@ export async function geocodeCity(
   query: string,
 ): Promise<GeocodingResult | null> {
   const key = `geocode:${query.toLowerCase()}`;
-  const cached = getCached<GeocodingResult | null>(key);
+  const cached = await getCachedFromDB<GeocodingResult | null>(key);
   if (cached) return cached;
 
   // If another request for this query is in flight, wait for it
@@ -40,7 +40,7 @@ export async function geocodeCity(
           params: { name: query, count: 1, language: "en", format: "json" },
         });
         const result = data.results?.[0] ?? null;
-        setCached(key, result, 10 * 60 * 1000);
+        await setCachedToDB(key, result, 10 * 60 * 1000);
         pendingGeocodeRequests.delete(key);
         return result;
       } catch (error: any) {
@@ -69,7 +69,7 @@ export async function suggestCities(
   count = 5,
 ): Promise<GeocodingResult[]> {
   const key = `suggest:${query.toLowerCase()}:${count}`;
-  const cached = getCached<GeocodingResult[]>(key);
+  const cached = await getCachedFromDB<GeocodingResult[]>(key);
   if (cached) return cached;
 
   // If another request for this query is in flight, wait for it
@@ -86,7 +86,7 @@ export async function suggestCities(
           params: { name: query, count, language: "en", format: "json" },
         });
         const results = data.results ?? [];
-        setCached(key, results, 10 * 60 * 1000);
+        await setCachedToDB(key, results, 10 * 60 * 1000);
         pendingSuggestRequests.delete(key);
         return results;
       } catch (error: any) {

@@ -65,3 +65,14 @@ INSERT INTO tags (name, color) VALUES
   ('Desert', '#F59E0B'),
   ('Tropical', '#10B981'),
   ('Urban', '#8B5CF6');
+
+-- api_cache: persistent cache for external API responses (survives server restarts)
+CREATE TABLE IF NOT EXISTS api_cache (
+  cache_key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for cleanup queries
+CREATE INDEX IF NOT EXISTS idx_api_cache_expires_at ON api_cache(expires_at);
