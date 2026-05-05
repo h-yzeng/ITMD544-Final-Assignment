@@ -1,0 +1,154 @@
+/* ── Shared section panel ── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* ── Outlook ── */
+.outlook-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+.outlook-headline {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.375rem;
+  line-height: 1.5;
+}
+.outlook-detail {
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── Daily forecast ── */
+.daily-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.daily-strip { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem; }
+.daily-strip--centered { justify-content: center; overflow-x: visible; }
+.daily-strip::-webkit-scrollbar { height: 3px; }
+.daily-strip::-webkit-scrollbar-track { background: transparent; }
+.daily-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.daily-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: pointer;
+  min-width: 88px;
+  color: var(--text);
+  flex-shrink: 0;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.daily-card:hover { border-color: var(--card-hover-border); background: var(--card-hover-bg); }
+.daily-card--selected { border-color: var(--accent); background: rgba(26, 110, 181, 0.15); }
+
+.daily-card__day {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.daily-card--today .daily-card__day { color: var(--accent); }
+.daily-card__max { font-weight: 700; font-size: 1rem; }
+.daily-card__min { color: var(--muted); font-size: 0.8125rem; }
+.daily-card__precip { font-size: 0.6875rem; color: #60a5fa; margin-top: 0.1rem; }
+
+/* ── Hourly scroll ── */
+.hourly-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+.hourly-scroll-wrap { overflow-x: auto; padding-bottom: 0.25rem; }
+.hourly-scroll-wrap::-webkit-scrollbar { height: 3px; }
+.hourly-scroll-wrap::-webkit-scrollbar-track { background: transparent; }
+.hourly-scroll-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.hourly-inner {
+  position: relative;
+  width: var(--total-w, auto);
+  min-width: var(--total-w, auto);
+}
+.hourly-row { display: flex; }
+.hourly-col {
+  width: 72px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hourly-col--icon { padding-bottom: 4px; }
+.hourly-col--precip { justify-content: flex-end; padding-bottom: 4px; }
+
+.hourly-curve-zone { position: relative; height: 96px; }
+.hourly-curve-svg  { position: absolute; top: 0; left: 0; }
+
+.hourly-time {
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding: 0.375rem 0 0.25rem;
+  font-weight: 500;
+}
+
+/* position driven by --tl-left / --tl-top CSS custom properties */
+.hourly-temp-label {
+  position: absolute;
+  left: var(--tl-left);
+  top: var(--tl-top);
+  transform: translateX(-50%);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.hourly-precip-bars {
+  display: flex;
+  align-items: flex-end;
+  height: 36px;
+  border-top: 1px solid var(--border);
+}
+
+/* height driven by --bar-h CSS custom property */
+.hourly-precip-bar {
+  width: 8px;
+  height: var(--bar-h, 4px);
+  background: #60a5fa;
+  border-radius: 3px 3px 0 0;
+  opacity: 0.85;
+}
+
+.hourly-precip-vals {
+  display: flex;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+  padding-bottom: 6px;
+}
+
+.hourly-precip-val { font-size: 0.6875rem; color: #60a5fa; padding-top: 2px; }
+
+@media (max-width: 960px) {
+  .daily-strip--centered { justify-content: flex-start; overflow-x: auto; }
+}
