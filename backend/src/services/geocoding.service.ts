@@ -8,36 +8,12 @@ const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 const MAX_RETRIES = 3;
 const INITIAL_DELAY_MS = 1000;
 
+// Request deduplication
+const pendingGeocodeRequests = new Map<string, Promise<GeocodingResult | null>>();
+const pendingSuggestRequests = new Map<string, Promise<GeocodingResult[]>>();
+
 async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function retryRequest<T>(
-  url: string,
-  config: any,
-  operation: (data: T) => any,
-): Promise<any> {
-  let lastError;
-
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    try {
-      const { data } = await axios.get<T>(url, config);
-      return operation(data);
-    } catch (error: any) {
-      lastError = error;
-
-      // If it's a 429 error and we have retries left, wait and retry
-      if (error.response?.status === 429 && attempt < MAX_RETRIES - 1) {
-        const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt);
-        await sleep(delayMs);
-        continue;
-      }
-
-      throw error;
-    }
-  }
-
-  throw lastError;
 }
 
 export async function geocodeCity(
@@ -47,17 +23,42 @@ export async function geocodeCity(
   const cached = getCached<GeocodingResult | null>(key);
   if (cached) return cached;
 
-  const result = await retryRequest<GeocodingResponse>(
-    GEOCODING_URL,
-    {
-      params: { name: query, count: 1, language: "en", format: "json" },
-    },
-    (data) => data.results?.[0] ?? null,
-  );
+  // If another request for this query is in flight, wait for it
+  if (pendingGeocodeRequests.has(key)) {
+    return pendingGeocodeRequests.get(key)!;
+  }
 
-  // cache for 10 minutes
-  setCached(key, result, 10 * 60 * 1000);
-  return result;
+  const requestPromise = (async () => {
+    let lastError;
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const { data } = await axios.get<GeocodingResponse>(GEOCODING_URL, {
+          params: { name: query, count: 1, language: "en", format: "json" },
+        });
+        const result = data.results?.[0] ?? null;
+        setCached(key, result, 10 * 60 * 1000);
+        pendingGeocodeRequests.delete(key);
+        return result;
+      } catch (error: any) {
+        lastError = error;
+
+        if (error.response?.status === 429 && attempt < MAX_RETRIES - 1) {
+          const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt);
+          await sleep(delayMs);
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    pendingGeocodeRequests.delete(key);
+    throw lastError;
+  })();
+
+  pendingGeocodeRequests.set(key, requestPromise);
+  return requestPromise;
 }
 
 export async function suggestCities(
@@ -68,14 +69,40 @@ export async function suggestCities(
   const cached = getCached<GeocodingResult[]>(key);
   if (cached) return cached;
 
-  const results = await retryRequest<GeocodingResponse>(
-    GEOCODING_URL,
-    {
-      params: { name: query, count, language: "en", format: "json" },
-    },
-    (data) => data.results ?? [],
-  );
+  // If another request for this query is in flight, wait for it
+  if (pendingSuggestRequests.has(key)) {
+    return pendingSuggestRequests.get(key)!;
+  }
 
-  setCached(key, results, 10 * 60 * 1000);
-  return results;
+  const requestPromise = (async () => {
+    let lastError;
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const { data } = await axios.get<GeocodingResponse>(GEOCODING_URL, {
+          params: { name: query, count, language: "en", format: "json" },
+        });
+        const results = data.results ?? [];
+        setCached(key, results, 10 * 60 * 1000);
+        pendingSuggestRequests.delete(key);
+        return results;
+      } catch (error: any) {
+        lastError = error;
+
+        if (error.response?.status === 429 && attempt < MAX_RETRIES - 1) {
+          const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt);
+          await sleep(delayMs);
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    pendingSuggestRequests.delete(key);
+    throw lastError;
+  })();
+
+  pendingSuggestRequests.set(key, requestPromise);
+  return requestPromise;
 }
