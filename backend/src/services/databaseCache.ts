@@ -2,6 +2,11 @@ import { supabase } from "../config/database";
 
 const CACHE_TABLE = "api_cache";
 
+export type CachedRecord<T> = {
+  value: T;
+  expires_at: string;
+};
+
 export async function getCachedFromDB<T>(key: string): Promise<T | null> {
   try {
     const { data, error } = await supabase
@@ -23,6 +28,25 @@ export async function getCachedFromDB<T>(key: string): Promise<T | null> {
   } catch (err) {
     // Fail gracefully — if cache lookup fails, let the API call proceed
     console.error(`Cache lookup failed for key ${key}:`, err);
+    return null;
+  }
+}
+
+export async function getCachedRecordFromDB<T>(
+  key: string,
+): Promise<CachedRecord<T> | null> {
+  try {
+    const { data, error } = await supabase
+      .from(CACHE_TABLE)
+      .select("value, expires_at")
+      .eq("cache_key", key)
+      .single();
+
+    if (error || !data) return null;
+
+    return data as CachedRecord<T>;
+  } catch (err) {
+    console.error(`Cache record lookup failed for key ${key}:`, err);
     return null;
   }
 }

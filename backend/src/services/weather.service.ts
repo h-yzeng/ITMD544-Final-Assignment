@@ -1,6 +1,10 @@
 import axios from "axios";
 import { OpenMeteoForecast } from "../types/weather";
-import { getCachedFromDB, setCachedToDB } from "./databaseCache";
+import {
+  getCachedFromDB,
+  getCachedRecordFromDB,
+  setCachedToDB,
+} from "./databaseCache";
 
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
@@ -25,6 +29,8 @@ export async function fetchForecast(
   // Check database cache first
   const cached = await getCachedFromDB<OpenMeteoForecast>(key);
   if (cached) return cached;
+
+  const staleCachedRecord = await getCachedRecordFromDB<OpenMeteoForecast>(key);
 
   // If another request for this location is already in flight, wait for it
   if (pendingForecastRequests.has(key)) {
@@ -71,6 +77,10 @@ export async function fetchForecast(
         return data;
       } catch (error: any) {
         lastError = error;
+
+        if (error.response?.status === 429 && staleCachedRecord?.value) {
+          return staleCachedRecord.value;
+        }
 
         // If it's a 429 error and we have retries left, wait and retry
         if (error.response?.status === 429 && attempt < MAX_RETRIES - 1) {

@@ -1,6 +1,10 @@
 import axios from "axios";
 import { GeocodingResult, GeocodingResponse } from "../types/weather";
-import { getCachedFromDB, setCachedToDB } from "./databaseCache";
+import {
+  getCachedFromDB,
+  getCachedRecordFromDB,
+  setCachedToDB,
+} from "./databaseCache";
 
 const GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search";
 
@@ -26,6 +30,10 @@ export async function geocodeCity(
   const cached = await getCachedFromDB<GeocodingResult | null>(key);
   if (cached) return cached;
 
+  const staleCachedRecord = await getCachedRecordFromDB<GeocodingResult | null>(
+    key,
+  );
+
   // If another request for this query is in flight, wait for it
   if (pendingGeocodeRequests.has(key)) {
     return pendingGeocodeRequests.get(key)!;
@@ -45,6 +53,13 @@ export async function geocodeCity(
         return result;
       } catch (error: any) {
         lastError = error;
+
+        if (
+          error.response?.status === 429 &&
+          staleCachedRecord?.value !== undefined
+        ) {
+          return staleCachedRecord.value;
+        }
 
         if (error.response?.status === 429 && attempt < MAX_RETRIES - 1) {
           const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt);
@@ -72,6 +87,8 @@ export async function suggestCities(
   const cached = await getCachedFromDB<GeocodingResult[]>(key);
   if (cached) return cached;
 
+  const staleCachedRecord = await getCachedRecordFromDB<GeocodingResult[]>(key);
+
   // If another request for this query is in flight, wait for it
   if (pendingSuggestRequests.has(key)) {
     return pendingSuggestRequests.get(key)!;
@@ -91,6 +108,10 @@ export async function suggestCities(
         return results;
       } catch (error: any) {
         lastError = error;
+
+        if (error.response?.status === 429 && staleCachedRecord?.value) {
+          return staleCachedRecord.value;
+        }
 
         if (error.response?.status === 429 && attempt < MAX_RETRIES - 1) {
           const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempt);
