@@ -7,7 +7,8 @@ import { OutlookSection } from './components/OutlookSection';
 import { DetailCards } from './components/DetailCards';
 import { RecentSearches } from './components/RecentSearches';
 import { useTheme } from './hooks/useTheme';
-import { searchCity, getSearchHistory, getHourlyForecasts } from './api/client';
+import { getSearchHistory, persistSearchResult } from './api/client';
+import { searchWeather } from './api/openMeteo';
 import type {
   Location,
   DailyForecast,
@@ -48,6 +49,7 @@ export default function App() {
   const [location, setLocation] = useState<Location | null>(null);
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [selectedDay, setSelectedDay] = useState<DailyForecast | null>(null);
+  const [allHourly, setAllHourly] = useState<HourlyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [history, setHistory] = useState<SearchHistoryEntry[]>([]);
   const [unit, setUnit] = useState<'C' | 'F'>('F');
@@ -61,17 +63,24 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const result = await searchCity(query);
+      const result = await searchWeather(query);
       setLocation(result.location);
       setDaily(result.daily);
       setCurrentConditions(result.current ?? null);
+      setAllHourly(result.hourly);
       const firstDay = result.daily[0] ?? null;
       setSelectedDay(firstDay);
+
       if (firstDay) {
-        const h = await getHourlyForecasts(result.location.id, firstDay.id);
+        const h = result.hourly.filter((item) => item.daily_forecast_id === firstDay.id);
         setHourly(h);
       }
-      setHistory(await getSearchHistory());
+
+      void persistSearchResult({
+        query,
+        geocoding: result.geocoding,
+        forecast: result.forecast,
+      }).then(() => getSearchHistory().then(setHistory).catch(() => {})).catch(() => {});
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setError(
@@ -84,13 +93,7 @@ export default function App() {
 
   const handleDaySelect = async (forecast: DailyForecast) => {
     setSelectedDay(forecast);
-    if (location) {
-      try {
-        setHourly(await getHourlyForecasts(location.id, forecast.id));
-      } catch {
-        setHourly([]);
-      }
-    }
+    setHourly(allHourly.filter((item) => item.daily_forecast_id === forecast.id));
   };
 
   const activeDay = selectedDay ?? daily[0] ?? null;

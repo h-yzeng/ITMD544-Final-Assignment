@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getSuggestions } from '../api/client';
+import { getSuggestions } from '../api/openMeteo';
 import type { LocationSuggestion } from '../types';
 
 interface Props {

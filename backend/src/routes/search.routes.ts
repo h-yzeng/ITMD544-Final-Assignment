@@ -4,6 +4,7 @@ import { fetchForecast } from '../services/weather.service';
 import { createOrGetLocation } from '../services/location.service';
 import { saveDailyForecasts } from '../services/forecast.service';
 import { logSearch, getRecentSearches } from '../services/searchLog.service';
+import { GeocodingResult, OpenMeteoForecast } from '../types/weather';
 
 export const searchRouter = Router();
 
@@ -72,6 +73,49 @@ searchRouter.get('/history', async (_req: Request, res: Response, next: NextFunc
   try {
     const history = await getRecentSearches(20);
     res.json(history);
+  } catch (err) {
+    next(err);
+  }
+});
+
+searchRouter.post('/persist', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { query, geocoding, forecast } = req.body as {
+      query?: string;
+      geocoding?: GeocodingResult;
+      forecast?: OpenMeteoForecast;
+    };
+
+    if (!query?.trim() || !geocoding || !forecast) {
+      res.status(400).json({ error: 'query, geocoding, and forecast are required' });
+      return;
+    }
+
+    const location = await createOrGetLocation({
+      name: geocoding.name,
+      country: geocoding.country,
+      latitude: geocoding.latitude,
+      longitude: geocoding.longitude,
+      timezone: geocoding.timezone,
+    });
+
+    const [daily] = await Promise.all([
+      saveDailyForecasts(location.id, forecast),
+      logSearch(query, location.id),
+    ]);
+
+    const raw = forecast.current;
+    const current = raw
+      ? {
+          temperature: raw.temperature_2m,
+          weather_code: raw.weather_code,
+          humidity: raw.relative_humidity_2m,
+          wind_speed: raw.wind_speed_10m,
+          precipitation: raw.precipitation,
+        }
+      : null;
+
+    res.json({ location, daily, current });
   } catch (err) {
     next(err);
   }

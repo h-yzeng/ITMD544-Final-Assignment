@@ -6,7 +6,6 @@ import type {
   Tag,
   SearchResult,
   SearchHistoryEntry,
-  LocationSuggestion,
 } from "../types";
 
 const apiUrl = import.meta.env.VITE_API_URL
@@ -21,18 +20,25 @@ export async function searchCity(query: string): Promise<SearchResult> {
   return data;
 }
 
-export async function getSearchHistory(): Promise<SearchHistoryEntry[]> {
-  const { data } = await api.get<SearchHistoryEntry[]>("/search/history");
+export async function persistSearchResult(payload: {
+  query: string;
+  geocoding: {
+    id: number;
+    name: string;
+    latitude: number;
+    longitude: number;
+    country: string;
+    timezone: string;
+    country_code: string;
+  };
+  forecast: unknown;
+}): Promise<SearchResult> {
+  const { data } = await api.post<SearchResult>("/search/persist", payload);
   return data;
 }
 
-export async function getSuggestions(
-  query: string,
-): Promise<LocationSuggestion[]> {
-  if (!query.trim()) return [];
-  const { data } = await api.get<LocationSuggestion[]>("/search/suggestions", {
-    params: { q: query },
-  });
+export async function getSearchHistory(): Promise<SearchHistoryEntry[]> {
+  const { data } = await api.get<SearchHistoryEntry[]>("/search/history");
   return data;
 }
 
