@@ -212,6 +212,8 @@ npm run dev
 The API will be available at `http://localhost:3001`.
 Swagger UI is at `http://localhost:3001/api/docs`.
 
+> **Note:** Swagger UI is only available in local development (`npm run dev`). It is not accessible on the deployed production backend.
+
 ### 6. Start the Frontend
 
 In a separate terminal:
