@@ -31,6 +31,7 @@ type OpenMeteoForecast = {
     weather_code: number | null;
     relative_humidity_2m: number | null;
     wind_speed_10m: number | null;
+    wind_direction_10m: number | null;
     precipitation: number | null;
   };
   daily: {
@@ -46,6 +47,7 @@ type OpenMeteoForecast = {
     temperature_2m: number[];
     precipitation: number[];
     wind_speed_10m: number[];
+    wind_direction_10m: number[];
     relative_humidity_2m: number[];
   };
 };
@@ -81,6 +83,7 @@ function buildCurrent(forecast: OpenMeteoForecast): CurrentConditions | null {
     weather_code: raw.weather_code,
     humidity: raw.relative_humidity_2m,
     wind_speed: raw.wind_speed_10m,
+    wind_direction: raw.wind_direction_10m,
     precipitation: raw.precipitation,
   };
 }
@@ -123,6 +126,7 @@ function buildHourly(
       temperature: forecast.hourly.temperature_2m[index] ?? null,
       precipitation: forecast.hourly.precipitation[index] ?? null,
       wind_speed: forecast.hourly.wind_speed_10m[index] ?? null,
+      wind_direction: forecast.hourly.wind_direction_10m[index] ?? null,
       humidity: forecast.hourly.relative_humidity_2m[index] ?? null,
     };
   });
@@ -186,6 +190,7 @@ export async function searchWeather(
       "weather_code",
       "relative_humidity_2m",
       "wind_speed_10m",
+      "wind_direction_10m",
       "precipitation",
     ].join(","),
   );
@@ -205,6 +210,7 @@ export async function searchWeather(
       "temperature_2m",
       "precipitation",
       "wind_speed_10m",
+      "wind_direction_10m",
       "relative_humidity_2m",
     ].join(","),
   );

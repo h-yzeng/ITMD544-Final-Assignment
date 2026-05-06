@@ -27,6 +27,7 @@ export interface HourlyForecast {
   temperature: number | null;
   precipitation: number | null;
   wind_speed: number | null;
+  wind_direction: number | null;
   humidity: number | null;
 }
 
@@ -41,6 +42,7 @@ export interface CurrentConditions {
   weather_code: number | null;
   humidity: number | null;
   wind_speed: number | null;
+  wind_direction: number | null;
   precipitation: number | null;
 }
 
